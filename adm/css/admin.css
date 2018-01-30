@@ -387,9 +387,17 @@ tfoot th {}
 .tbl_head01 tbody .bg1cancel td {border-color:#f9d8e6 !important}
 
 /* 메뉴설정 */
+#menu_frm .new_win_desc{ margin-bottom:8px}
+#menu_frm .new_win_desc label{ font-weight:bold}
+#menu_frm .new_win_desc select{ min-width:140px; margin-left:8px;}
+#menu_frm .new_win_desc2{ color:#999}
+
 #menu_frm #menu_result {margin:10px 0}
 
-#menulist .sub_menu_class {padding-left:25px;background:url('../img/sub_menu_ico.gif') 5px 15px no-repeat}
+#menulist .sub_menu_class {padding-left:20px;background:url('../img/sub_menu_ico.gif') 0 50% no-repeat}
+#menulist .sub_menu_class2 {padding-left:25px;background:url('../img/sub_menu_ico.gif') 5px 50% no-repeat}
+#menulist .sub_menu_class3 {padding-left:35px;background:url('../img/sub_menu_ico.gif') 15px 50% no-repeat}
+#menulist .sub_menu_class4 {padding-left:45px;background:url('../img/sub_menu_ico.gif') 25px 50% no-repeat}
 .exist_menu_link {font-weight:bold;color:red}
 
 /* 회원관리 목록 */

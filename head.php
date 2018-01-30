@@ -105,106 +105,120 @@ include_once(G5_LIB_PATH.'/popular.lib.php');
         </ul>
     </div>
     
-    <nav id="gnb">
-        <h2>메인메뉴</h2>
-        <div class="gnb_wrap">
-            <ul id="gnb_1dul">
-                <li class="gnb_1dli gnb_mnal"><button type="button" class="gnb_menu_btn"><i class="fa fa-bars" aria-hidden="true"></i><span class="sound_only">전체메뉴열기</span></button></li>
-                <?php
-                $sql = " select *
-                            from {$g5['menu_table']}
-                            where me_use = '1'
-                              and length(me_code) = '2'
-                            order by me_order, me_id ";
-                $result = sql_query($sql, false);
-                $gnb_zindex = 999; // gnb_1dli z-index 값 설정용
-                $menu_datas = array();
-
-                for ($i=0; $row=sql_fetch_array($result); $i++) {
-                    $menu_datas[$i] = $row;
-
-                    $sql2 = " select *
-                                from {$g5['menu_table']}
-                                where me_use = '1'
-                                  and length(me_code) = '4'
-                                  and substring(me_code, 1, 2) = '{$row['me_code']}'
-                                order by me_order, me_id ";
-                    $result2 = sql_query($sql2);
-                    for ($k=0; $row2=sql_fetch_array($result2); $k++) {
-                        $menu_datas[$i]['sub'][$k] = $row2;
-                    }
-
-                }
-
-                $i = 0;
-                foreach( $menu_datas as $row ){
-                    if( empty($row) ) continue; 
-                ?>
-                <li class="gnb_1dli" style="z-index:<?php echo $gnb_zindex--; ?>">
-                    <a href="<?php echo $row['me_link']; ?>" target="_<?php echo $row['me_target']; ?>" class="gnb_1da"><?php echo $row['me_name'] ?></a>
-                    <?php
-                    $k = 0;
-                    foreach( (array) $row['sub'] as $row2 ){
-
-                        if( empty($row2) ) continue; 
-
-                        if($k == 0)
-                            echo '<span class="bg">하위분류</span><ul class="gnb_2dul">'.PHP_EOL;
-                    ?>
-                        <li class="gnb_2dli"><a href="<?php echo $row2['me_link']; ?>" target="_<?php echo $row2['me_target']; ?>" class="gnb_2da"><?php echo $row2['me_name'] ?></a></li>
-                    <?php
-                    $k++;
-                    }   //end foreach $row2
-
-                    if($k > 0)
-                        echo '</ul>'.PHP_EOL;
-                    ?>
-                </li>
-                <?php
-                $i++;
-                }   //end foreach $row
-
-                if ($i == 0) {  ?>
-                    <li class="gnb_empty">메뉴 준비 중입니다.<?php if ($is_admin) { ?> <a href="<?php echo G5_ADMIN_URL; ?>/menu_list.php">관리자모드 &gt; 환경설정 &gt; 메뉴설정</a>에서 설정하실 수 있습니다.<?php } ?></li>
-                <?php } ?>
-            </ul>
-            <div id="gnb_all">
-                <h2>전체메뉴</h2>
-                <ul class="gnb_al_ul">
-                    <?php
-                    
-                    $i = 0;
-                    foreach( $menu_datas as $row ){
-                    ?>
-                    <li class="gnb_al_li">
-                        <a href="<?php echo $row['me_link']; ?>" target="_<?php echo $row['me_target']; ?>" class="gnb_al_a"><?php echo $row['me_name'] ?></a>
+   
+    
+    
+    
+    <div class="navbar navbar-navs">
+            <div class="container">
+                <nav class="main-navigation">
+                    <ul id="menu-primary-1" class="menu">
                         <?php
-                        $k = 0;
-                        foreach( (array) $row['sub'] as $row2 ){
-                            if($k == 0)
-                                echo '<ul>'.PHP_EOL;
-                        ?>
-                            <li><a href="<?php echo $row2['me_link']; ?>" target="_<?php echo $row2['me_target']; ?>"><i class="fa fa-caret-right" aria-hidden="true"></i> <?php echo $row2['me_name'] ?></a></li>
+				$sql = " select *
+							from {$g5['menu_table']}
+							where me_use = '1'
+							  and length(me_code) = '2'
+							order by me_order, me_id ";
+				$result = sql_query($sql, false);
+				for ($i=0; $row=sql_fetch_array($result); $i++) {
+
+					$sql2 = " select *
+								from {$g5['menu_table']}
+								where me_use = '1'
+								  and length(me_code) = '4'
+								  and substring(me_code, 1, 2) = '{$row['me_code']}'
+								order by me_order, me_id ";
+					$result2 = sql_query($sql2);
+
+					$row['cnt'] = @sql_num_rows($result2);
+
+				?>
+                        <li class="menu-item<?php echo ($row['cnt'])?' menu-item-has-children':'';?>"> <a href="<?php echo $row['me_link']; ?>" target="_<?php echo $row['me_target']; ?>"><?php echo $row['me_name'] ?></a>
+                            <?php
+					for ($k=0; $row2=sql_fetch_array($result2); $k++) {
+
+							$sql3 = " select *
+										from {$g5['menu_table']}
+										where me_use = '1'
+										  and length(me_code) = '6'
+										  and substring(me_code, 1, 4) = '{$row2['me_code']}'
+										order by me_order, me_id ";
+							$result3 = sql_query($sql3);
+
+							$row2['cnt'] = @sql_num_rows($result3);
+
+						if($k == 0)
+							echo '<ul class="sub-menu2">'.PHP_EOL;
+					?>
+                        <li class="menu-item<?php echo ($row2['cnt'])?' menu-item-has-children':'';?>"> <a href="<?php echo $row2['me_link']; ?>" target="_<?php echo $row2['me_target']; ?>"><?php echo $row2['me_name'] ?></a>
+                            <?php
+							for ($s=0; $row3=sql_fetch_array($result3); $s++) {
+
+									$tql4 = " select *
+												from {$g5['menu_table']}
+												where me_use = '1'
+												  and length(me_code) = '8'
+												  and substring(me_code, 1, 6) = '{$row3['me_code']}'
+												order by me_order, me_id ";
+									$result4 = sql_query($tql4);
+
+									$row3['cnt'] = @sql_num_rows($result4);
+
+								if($s == 0)
+									echo '<ul class="sub-menu3">'.PHP_EOL;
+							?>
+                        <li class="menu-item<?php echo ($row3['cnt'])?' menu-item-has-children':'';?>"> <a href="<?php echo $row3['me_link']; ?>" target="_<?php echo $row3['me_target']; ?>"><?php echo $row3['me_name'] ?></a>
+                            <?php
+									for ($t=0; $row4=sql_fetch_array($result4); $t++) {
+										if($t == 0)
+											echo '<ul class="sub-menu4">'.PHP_EOL;
+									?>
+                        <li class="menu-item"> <a href="<?php echo $row4['me_link']; ?>" target="_<?php echo $row4['me_target']; ?>"><?php echo $row4['me_name'] ?></a> </li>
                         <?php
-                        $k++;
-                        }   //end foreach $row2
+									}
 
-                        if($k > 0)
-                            echo '</ul>'.PHP_EOL;
-                        ?>
-                    </li>
-                    <?php
-                    $i++;
-                    }   //end foreach $row
+									if($t > 0)
+										echo '</ul>'.PHP_EOL;
+									?>
+                        </li>
+                        <?php
+							}
 
-                    if ($i == 0) {  ?>
-                        <li class="gnb_empty">메뉴 준비 중입니다.<?php if ($is_admin) { ?> <br><a href="<?php echo G5_ADMIN_URL; ?>/menu_list.php">관리자모드 &gt; 환경설정 &gt; 메뉴설정</a>에서 설정하실 수 있습니다.<?php } ?></li>
-                    <?php } ?>
-                </ul>
-                <button type="button" class="gnb_close_btn"><i class="fa fa-times" aria-hidden="true"></i></button>
+							if($s > 0)
+								echo '</ul>'.PHP_EOL;
+							?>
+                        </li>
+                        <?php
+					}
+
+					if($k > 0)
+						echo '</ul>'.PHP_EOL;
+					?>
+                        </li>
+                        <?php
+				}
+
+				if ($i == 0) {  ?>
+                        <li class="menu-item">
+                            <?php if ($is_admin) { ?>
+                            <a href="<?php echo G5_ADMIN_URL; ?>/menu_list.php">관리자모드 &gt; 환경설정 &gt; 메뉴설정</a>
+                            <?php }else{ ?>
+                            <a href="<?php echo G5_URL ?>">메뉴 준비 중입니다.</a>
+                            <?php } ?>
+                        </li>
+                        <?php } ?>
+                    </ul>
+                </nav>
             </div>
         </div>
-    </nav>
+
+    
+    
+   
+    
+    
+    
+    
     <script>
     
     $(function(){

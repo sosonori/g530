@@ -8,9 +8,9 @@ if ($is_admin != 'super')
 $g5['title'] = '메뉴 추가';
 include_once(G5_PATH.'/head.sub.php');
 
-$code = isset($code) ? preg_replace('/[^0-9a-zA-Z]/', '', strip_tags($code)) : '';
-
 // 코드
+$origin_code=$code;
+
 if($new == 'new' || !$code) {
     $code = base_convert(substr($code,0, 2), 36, 10);
     $code += 36;
@@ -21,9 +21,28 @@ if($new == 'new' || !$code) {
 <div id="menu_frm" class="new_win">
     <h1><?php echo $g5['title']; ?></h1>
 
-    <form name="fmenuform" id="fmenuform" class="new_win_con">
+    <form name="fmenuform" id="fmenuform" class="new_win_con" method="post" action="./menu_list_insert.php">
+	<input type="hidden" name="me_id" value="<?php echo $me_id?>">
 
     <div class="new_win_desc">
+        <label for="me_code">메뉴선택</label>
+        <select name="me_code" id="me_code">
+			<option value="">선택</option>
+			<?php
+				$sql = "select * from {$g5['menu_table']} where 1=1 order by me_code,me_id ";
+				$res = sql_query($sql);
+				while($R=sql_fetch_array($res)){
+			?>
+            <option value="<?php echo $R['me_code']?>" <?php if($R['me_code']==$origin_code && $new != 'new') echo "selected"; ?> >
+				<?php if((strlen($R['me_code'])/2)>1) { ?>
+				<?php for($i=0;$i<(strlen($R['me_code'])/2);$i++){ echo "="; } ?> >
+				<?php } ?>
+				<?php echo $R['me_name']?>
+			</option>
+			<?php } ?>
+        </select>
+    </div>
+	<div class="new_win_desc">
         <label for="me_type">대상선택</label>
         <select name="me_type" id="me_type">
             <option value="">직접입력</option>
@@ -32,6 +51,9 @@ if($new == 'new' || !$code) {
             <option value="content">내용관리</option>
         </select>
     </div>
+	<div class="new_win_desc2">
+		* 선택된 메뉴의 하위 메뉴로 등록합니다.<br>
+		* 선택이 없으면 최상단 메뉴로 등록합니다.</div>
 
     <div id="menu_result"></div>
 
@@ -45,72 +67,46 @@ $(function() {
         "./menu_form_search.php"
     );
 
-    function link_checks_all_chage(){
-
-        var $links = $(opener.document).find("#menulist input[name='me_link[]']"),
-            $o_link = $(".td_mngsmall input[name='link[]']"),
-            hrefs = [],
-            menu_exist = false;
-           
-        if( $links.length ){
-            $links.each(function( index ) {
-                hrefs.push( $(this).val() );
-            });
-
-            $o_link.each(function( index ) {
-                if( $.inArray( $(this).val(), hrefs ) != -1 ){
-                    $(this).closest("tr").find("td:eq( 0 )").addClass("exist_menu_link");
-                    menu_exist = true;
-                }
-            });
-        }
-
-        if( menu_exist ){
-            $(".menu_exists_tip").show();
-        } else {
-            $(".menu_exists_tip").hide();
-        }
-    }
-
-    function menu_result_change( type ){
-        
-        var dfd = new $.Deferred();
-
-        $("#menu_result").empty().load(
-            "./menu_form_search.php",
-            { type : type },
-            function(){
-                dfd.resolve('Finished');
-            }
-        );
-
-        return dfd.promise();
-    }
-
     $("#me_type").on("change", function() {
         var type = $(this).val();
 
-        var promise = menu_result_change( type );
+        $("#menu_result").empty().load(
+            "./menu_form_search.php",
+            { type : type }
+        );
+    });
 
-        promise.done(function(message) {
-            link_checks_all_chage(type);
-        });
+
+	$(document).on("click", "#add_manual", function() {
+
+		var f = document.fmenuform;
+
+		var me_name = $.trim($("#me_name").val());
+		var me_link = $.trim($("#me_link").val());
+
+		if(me_name==""){
+			alert('메뉴 이름을 입력하세요.');
+			return false;
+		}
+		if(me_link==""){
+			alert('메뉴 링크를 입력하세요.');
+			return false;
+		}
+
+		f.submit();
 
     });
 
-    $(document).on("click", "#add_manual", function() {
-        var me_name = $.trim($("#me_name").val());
-        var me_link = $.trim($("#me_link").val());
-
-        add_menu_list(me_name, me_link, "<?php echo $code; ?>");
-    });
 
     $(document).on("click", ".add_select", function() {
-        var me_name = $.trim($(this).siblings("input[name='subject[]']").val());
-        var me_link = $.trim($(this).siblings("input[name='link[]']").val());
+		var f = document.fmenuform;
 
-        add_menu_list(me_name, me_link, "<?php echo $code; ?>");
+		f.me_name.value=$.trim($(this).siblings("input[name='subject[]']").val());
+		f.me_link.value=$.trim($(this).siblings("input[name='link[]']").val());
+
+		f.submit();
     });
+
 });
 
 function add_menu_list(name, link, code)
@@ -161,9 +157,9 @@ function add_menu_list(name, link, code)
     list += "</td>";
     list += "<td class=\"td_mngsmall\">";
     <?php if($new == 'new') { ?>
-    list += "<button type=\"button\" class=\"btn_add_submenu btn\">추가</button>";
+    list += "<button type=\"button\" class=\"btn_add_submenu\">추가</button>";
     <?php } ?>
-    list += "<button type=\"button\" class=\"btn_del_menu btn\">삭제</button>";
+    list += "<button type=\"button\" class=\"btn_del_menu\">삭제</button>";
     list += "</td>";
     list += "</tr>";
 
@@ -190,6 +186,28 @@ function add_menu_list(name, link, code)
 
     window.close();
 }
+
+function frm_submit(){
+
+	var f = document.fmenuform;
+
+    var me_name = $.trim($("#me_name").val());
+    var me_link = $.trim($("#me_link").val());
+
+	if(me_name==""){
+		alert('메뉴 이름을 입력하세요.');
+		return false;
+	}
+	if(me_link==""){
+		alert('메뉴 링크를 입력하세요.');
+		return false;
+	}
+
+	f.submit();
+
+}
+
+
 </script>
 
 <?php
